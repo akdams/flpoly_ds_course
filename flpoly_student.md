@@ -9,7 +9,7 @@ DSBA student at [Florida Polytechnic University](https://www.floridapoly.edu) cu
 | **COP**     | **2073**    |_Intro to Data Science_ 		  		  |   3    |
 | **EGN**     | **3448**    |_Operations Research_   		   		  |   3    |
 | **ENT**     | **2112**    |_Entrepreneurial Opportunity Analysis_ 		  |   3    |      
-| **ENT**     | **2112**    |_International & Comparative Dimensions of Business_ |   3    |
+| **GEB**     | **3373**    |_International & Comparative Dimensions of Business_ |   3    |
 
 
 
