@@ -4,13 +4,14 @@
 
 DSBA student at [Florida Polytechnic University](https://www.floridapoly.edu) currently enrolled in: 
 
-- COP 2073-01. Introduction to Data Science with Professor Arias-Sanchez.
+| Prefix:     | Number:     | Name:                   				  |Credits:|
+| :-----:     |  :--------: |   :--------------------:                		  | :----: |
+| **COP**     | **2073**    |_Intro to Data Science_ 		  		  |   3    |
+| **EGN**     | **3448**    |_Operations Research_   		   		  |   3    |
+| **ENT**     | **2112**    |_Entrepreneurial Opportunity Analysis_ 		  |   3    |      
+| **ENT**     | **2112**    |_International & Comparative Dimensions of Business_ |   3    |
 
-- EGN 3448-01FX. Operations Research with Professor Ardakani. 
 
-- ENT 2112-01FX. Entrepreneurial Opportunity Analysis with Professor Heacock.
-
-- GEB 3373-01. International & Comparative Dimensions of Business with Professor Kelda.. 
 
 **Hobbies:**
 
