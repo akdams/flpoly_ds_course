@@ -25,7 +25,7 @@ b. Include a link to your GitHub repo in this document.
 
 c. Take a screenshot of the GitHub repo, add the screenshot file to the repo, and include it in this document (review how to insert a picture using markdown)
 
-![](../Markdown_Screenshot.png)
+![](../Updated_Table.png)
 
 
 # Problem 2 (30 points)
