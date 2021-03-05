@@ -1,0 +1,183 @@
+---
+title: "Introduction to Data Science"
+author: "Austin Adams - `aadams0230@floridapoly.edu`"
+subtitle: Homework 4(really 3) - exploring data with dyplr
+output:
+  html_document:
+    df_print: paged
+---
+
+
+
+# Problem 1 
+
+Load the `tidyverse` package
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+In this problem you will work with vehicle fuel economy data from the US EPA (Environmental Protection Agency), ranging from 1985-2015. 
+
+Read the data using the code below:
+
+```{r, message=FALSE, warning=FALSE}
+Vehicles <- read_csv("https://raw.githubusercontent.com/reisanar/datasets/master/vehicles.csv")
+```
+
+   Variable  | Description
+-------------|-----------------------------------------
+`id`         | Unique EPA identifier
+`make`       | Manufacturer
+`model`      | Model name
+`year`       | Model year
+`class`      | EPA vehicle size class
+`trans`      | Transmission
+`drive`      | Drive train
+`cyl`        | Number of cylinders
+`displ`      | Engine displacement, in litres
+`fuel`       | Fuel type
+`hwy`        | Highway fuel economy, in mpg
+`cty`        | City fuel economy, in mpg
+```{r}
+glimpse(Vehicles) #quick gander at the data set
+```
+
+(a) (6 points) Select the different manufacturers (makes) of the cars in this data set. Save this vector in a variable called `makes`
+```{r}
+makes <- select(Vehicles, make) #select when grabbing columns from the data set and filter with values/subsections in the columns...select is broad and filter is narrow [pesonal reminder notes]
+makes
+
+```
+
+
+(b) (6 points) Can you determine how many different car manufacturers are represented by the data set?
+```{r}
+unique(makes)#shows you the different manufacturers as a named table
+
+unique(makes) %>% 
+  count() #counts how many manufacturers
+```
+
+
+(c) (6 points) Filter the data set for vehicles manufactured in 1998.
+```{r}
+filter(Vehicles, year == "1998") #filtering based on the year
+```
+
+
+(d) (8 points) Mutate the 1998 cars data frame to add a column `average` that has the average gas mileage (between city and highway MPG) for each car
+```{r}
+vehicles2 <- mutate(Vehicles, Average = (cty + hwy)/2) #assigns a new data set that includes the new column
+vehicles2 #calls the new data set
+```
+
+
+(e) (8 points) Of all vehicles, what is the vehicle ID of the vehicle with the worst highway MPG?
+```{r}
+vehicles2 %>% #data set
+  filter (hwy == min(hwy))%>% #finds the minimum hwy mpg
+  select(id) #selects the data sets low numbers and produces the ID for it
+```
+
+(f) (8 points) Which 2013 Acura model has the best highway MPG? Which 2015 Honda model has the best highway MPG?
+```{r}
+vehicles2 %>%
+  filter(make == "Acura", year == "2013") %>% #filtering my data set to Acura's into 2013 
+  filter(hwy ==max(hwy)) %>% #filters it to show best Acura hwy mpg
+  select(model) #provides the exact model
+```
+
+
+
+
+```{r}
+vehicles2 %>%
+  filter(make == "Honda", year == "2015") %>% #filtering my data set to Honda's into 2015 
+  filter(hwy == max(hwy))%>% #filters it to show best Honda hwy mpg
+  select(model) #provides the exact model
+```
+
+
+# Problem 2
+
+Load the `nycflights13` packages. 
+
+```{r}
+library(nycflights13)
+```
+
+
+Use the `flights` dataframe to answer the following questions. 
+```{r}
+glimpse(flights) #quick look to get all the column names
+```
+
+(a) (6 points) Find all flights headed to TPA, and select only the origin, destination, and the departure time.
+```{r}
+flights %>% #dataset
+  filter(dest =="TPA") %>% #filters it based off final destination
+  select(origin, dest, dep_time) #grabs what the prompt wants
+```
+
+
+(b) (6 points) Consider flights from JFK to MCO. What was the average, minimum, and maximum _air time_ of those flights? 
+```{r}
+flights %>% #data set
+  filter(origin == "JFK" & dest =="MCO") %>% #filters it based off of origin and destination
+  summarise(mean = mean(air_time, na.rm = T), min = min(air_time, na.rm = T), max = max(air_time, na.rm=T)) #summarizing the info with mean, min, and max times
+```
+
+
+(c) (6 points) What was the average _departure delay_ in each month? Save this as a data frame `dep_delay_by_month`. (Hint: you may have to perform a grouping operation then summarizing your data).
+```{r}
+dep_delay_by_month <- flights %>% #data set
+  group_by(month) %>% #grouping it by month
+  summarise(mean_delay =mean(dep_delay, na.rm = T)) #finding average of that delay per month
+
+dep_delay_by_month #returning the var to get it to print the table
+```
+
+
+(d) (8 points) Which month had the greatest average _departure delay_?
+```{r}
+dep_delay_by_month%>% #data set
+  filter(mean_delay==max(mean_delay))#greatest average departure delay by month
+```
+
+
+(e) (8 points) To which destinations were the average _arrival delays_ the highest?
+```{r}
+flights %>% #data set
+  group_by(dest) %>% #grouping it by destination
+  summarise(arr_delay =mean(arr_delay, na.rm = T))%>% #finding average of that delay per month
+  arrange(desc(arr_delay)) #descending it to show highest values in order.
+```
+
+
+(f) (8 points) Which airline had the smallest average _arrival delay_?
+```{r}
+flights %>% #data set
+  group_by(carrier) %>% #grouping it by carrier
+  summarise(arr_delay =mean(arr_delay, na.rm = T)) %>% #finding average of that delay per month
+ filter(arr_delay==min(arr_delay)) #descending it to show smallest...data indicates that the smallest arrival delay as it means the carrier got there early
+```
+
+
+(g) (8 points) Find all flights that were operated by United, American, or Delta.
+```{r}
+flights %>%
+  filter(carrier=="UA"|carrier=="AA"|carrier=="DL")%>% #filtering it by carriers
+  select(carrier, origin, dest, arr_delay)%>% #only wanting select columns and not the whole data set
+  arrange(desc(arr_delay))#shows worst arrival delay to best
+```
+
+
+(h) (8 points) Find all the flights (if any) headed to Orlando, Tampa, or Miami with a scheduled departure time later than 8:00 PM.
+```{r}
+flights %>% #data set
+  filter(dest=="MCO"|dest=="TPA"|dest=="MIA")%>% #filtered by destination
+  filter(sched_dep_time>2000)%>% #getting the time after 8pm (military time)
+  select(dest, sched_dep_time)%>% #only wanting these these two columns
+  arrange(sched_dep_time) #arranging it from earlier time
+```
