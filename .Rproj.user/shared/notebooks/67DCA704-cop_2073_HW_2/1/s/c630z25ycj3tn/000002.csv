@@ -1,0 +1,6 @@
+"0","```r
+name_length <- nchar(my_name)
+paste(\"The number of letters in the name,\", my_name, \"is\", name_length)
+```"
+"1","[1] \"The number of letters in the name, Austin Adams is 12\"
+"

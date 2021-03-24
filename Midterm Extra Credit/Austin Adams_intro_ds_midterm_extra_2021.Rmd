@@ -53,9 +53,13 @@ myid #calling that variable
 ggplot(y = iris$Petal.Length) + #creates plot
   geom_bar(mapping = aes(x = iris$Petal.Length, fill = iris$Petal.Length)) #wanting it to have petal length of the iris as x axis and count it based how many times it occurs. 
 ```
+```{r}
+ggplot(data = iris) + #uses the data set as the basis for later
+  geom_histogram(mapping = aes(x = Petal.Length)) #better way to go about creating a histogram
+```
 
 
-(c) (2 points) Create side-by-side boxplots that show the distribution of the numerical variable you chose in part (a) for the 3 different types of `Species`. _Make sure to comment on your results_.
+(c) (2 points) Create side-by-side box plots that show the distribution of the numerical variable you chose in part (a) for the 3 different types of `Species`. _Make sure to comment on your results_.
 
 ```{r}
 # use ggplot to create the boxplots
@@ -148,11 +152,10 @@ music_top100
 
 (c) (2 points) Check the **distribution of duration of songs**. Use a histogram for the variable `duration_min` with `binwidth=0.5`
 
+
 ```{r}
-# hint: use geom_histogram
-ggplot(y = music_top100$duration_min) + #creates a plot
-  geom_bar(mapping = aes(x = music_top100$duration_min, fill = music_top100$duration_min)) + geom_histogram(binwidth = 0.5)
-#similar layout to the histogram created in Problem 1 but added in the bin-width
+ggplot(data = music_top100)+ #data set
+  geom_histogram(aes(x=duration_min), binwidth = 0.5) #binwidth outside
 ```
 
 
@@ -174,12 +177,32 @@ music_top100 %>% #data set
 ```{r}
 # number of explicit songs per year
 music_top100 %>% #data set
+  group_by(year)%>% #grouped by year
   filter(explicit == "TRUE") %>% #selecting only those that are explicit 
-  summarise(n()) #counting them
+  summarise(total_explicit = n()) #counting them 
+```
+```{r}
+#another way to do this is....
+music_top100 %>%
+  group_by(year, explicit) %>%
+  count()
 ```
 
+```{r}
+music_top100 %>%
+  group_by(year, explicit) %>%
+  count() %>%
+  filter(year > 2010) %>% #after this line we use the plus not the pipe
+  ggplot() + geom_col(aes(x = year, y = n, fill = explicit), position = "dodge") #enables it to be next to each other. Not using the position they would be stacked on top of each other
+```
 
 ### Tell us something we don't know (Extra credit: up to 3 points)
+Looking at Justin Timberlake
+```{r}
+music_top100 %>%
+  filter(artist_name == "Justin Timberlake")
+
+```
 
 
 - This is your chance to be creative and explore the data set in a way we have not done yet. 
@@ -233,7 +256,7 @@ added <- music_top100 %>% #assigned new variable to old data set
   group_by(year) %>%
   summarise(avg_loudness = mean(loudness), avg_tempo = mean(tempo))#grabbing the average values year over year
 
-ggplot(added, aes(x = avg_loudness, y = avg_tempo)) + geom_point(size = 3)+geom_smooth(method = "lm")
+ggplot(added, aes(x = avg_loudness, y = avg_tempo, color = year)) + geom_point(size = 3)+geom_smooth(method = "lm") #color by year to use a gradient
 ```
 
 It hardly slopes upwards. 
