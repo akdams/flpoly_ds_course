@@ -1,0 +1,200 @@
+---
+title: 'Austin Adams_Homework: Deriving Information with `dplyr`'
+output:
+  html_document:
+    df_print: paged
+---
+
+## The Most Popular Names
+
+We will be using the `babynames` package to answer these questions. You can install this by typing in `install.packages("babynames")` in the RStudio console. Alternatively, you can type `babynames` in the window at the bottom right under the *packages* tab, and install the package that way
+
+```{r, message = FALSE, warning = FALSE}
+# load the tidyverse package
+library(tidyverse)
+library(babynames)
+# set a random seed
+set.seed(217)
+```
+
+Remember that `dplyr` provides functions that can help you reveal the information implied by your data:
+
+- `summarise()`
+- `group_by()`
+- `mutate()`
+
+Like `select()`, `filter()` and `arrange()`, these functions all take a data frame as their first argument and return a new data frame as their output, which makes them easy to use in pipes.
+
+## Problem 1 (10 points)
+
+What is meant by "the most popular" names? We should focus on two different definitions of the *popular*, one that uses sum and one that uses ranks.
+
+- **Sums** A name is popular if the total number of children that have the name is large when you sum across years
+- **Ranks** A name is popular if it consistently ranks among the top names from year to year.  
+
+**a)** Explore the `babynames` dataframe by printing 10 rows (you can do a random sample of names, the first 10, or the last 10). Do you think we have enough information in `babynames` to compare the popularity of names?
+
+```{r}
+babynames %>%
+  sample_n(10) #random sample of 10 names
+```
+
+I think we should have enough information in "babynames" to compare the popularity of names. :)
+
+## Problem 2 (30 points)
+
+**a)** Calculate the maximum and minimum number of boys named "Garret" in a single year. Use the `summarise()` function
+
+```{r}
+babynames %>% #data set
+  filter(name == "Garret", sex == "M") %>% #filter parameters
+  summarise(max = max(n), min = min(n))#max and min values in a single year
+```
+
+**b)** Compute three summary statistics:
+
+1. the total number of children who ever had _your name_ (or the name of some friend)
+```{r}
+babynames %>% #data set
+  filter(name == "Austin")%>% #my name :)
+  summarise(total_children = sum(n)) #total number of kids who ever had my name - includes both male and female throughout all of time
+```
+
+There are a total of 412,179 kids in the data set that have my name. Would be rad if I was one of those data entry points. :)
+
+2. the maximum number of children given your name (or the name of some friend) in a single year
+```{r}
+babynames %>% #data set
+  filter(name == "Austin")%>% #my name :)
+  arrange(desc(n)) %>% #wanting it to be highest to lowest
+  head(1) #highest value
+```
+
+The highest number of children given my name was in 1995 with 25,905 kids. 
+
+
+3. the mean number of children given your name (or the name of some friend) per year
+```{r}
+babynames %>% #data set
+  filter(name == "Austin")%>% #my name :)
+  group_by(year)%>% #wanting it per year
+  summarise(average_children = mean(n)) #average per year
+```
+
+
+**c)** "Khaleesi" is a very modern name that appears to be based on the Game of Thrones TV series, which premiered on April 17, 2011. In the chunk below, filter `babynames` to just the rows where `name == "Khaleesi"`. Then use `summarise()` and a summary function to return the first value of year in the data set.
+```{r}
+babynames %>% 
+  filter(name == "Khaleesi") %>% #named wanted
+  summarise(year = first(year)) #first year
+```
+
+
+**d)** Use `summarise()` and a summary function to return a data frame with two columns:
+
+- A column named `n` that displays the total number of rows in `babynames`
+- A column named `distinct` that displays the number of _distinct names_ in `babynames` (Hint: check how the `n_distinct()` function works)
+
+```{r}
+babynames %>%
+    summarise(n = NROW(babynames), distinct = n_distinct(name))
+```
+
+## Problem 3 (24 points)
+
+**a)** Use `group_by()`, `summarise()`, and `arrange()` to display the ten most popular names. Compute popularity as the total number of children of a single gender given a name. In other words, the total number of boys named "Kelly" should be computed separately from the total number of girls named "Kelly".
+
+```{r}
+babynames %>% #data set
+  group_by(name,sex) %>% #wanting the name and the sex to be done individually
+  summarise(totals = sum(n)) %>% #names with the most number of people (why we are using n as that's the count)
+  arrange(desc(totals))%>% #wanting it descending to see the highest to lowest
+  head(10) #only wanting the top 10
+```
+
+
+**b)** Run the chunk below and then plot a line graph of `prop` vs `year` for each name in `babynames`. Before plotting make a new dataframe called `top_10` that contains the ten most popular names, grouped by year, sex, and name. (Hint: check the `geom_line()` function from `ggplot2`)
+
+```{r}
+tops <- babynames::babynames %>% 
+  group_by(name, sex) %>% 
+  summarise(total = sum(n)) %>% 
+  ungroup() %>% 
+  top_n(10, total)
+  
+top_10 <- babynames::babynames %>% 
+  semi_join(tops, by = c("name", "sex"))
+```
+
+```{r}
+top_10 %>%
+  ggplot() + geom_line(aes(x = year, y = prop, color = name)) + labs(title = "Proportion of a Name Over Time - a Look at Names within a Population", y = "Proportion", x = "Year")+ theme_minimal()
+```
+
+
+**c)** Now use `top_10` dataframe to plot `n` vs `year` for each of the names. How are the plots different? Why might that be? How does this affect our decision to use total children as a measure of popularity?
+```{r}
+top_10 %>%
+  ggplot() + geom_line(aes(x = year, y = n, color = name)) + labs(title = "Count of Name Over Time - a Specific Look at Names", x = "Year", y = "Count of Name")+ theme_minimal()
+```
+
+These two plots are quite different. We see in the first chart, early when the data set was being collected, we have higher props. However, this could be due to a lower total global population and not a lot of variance in names that were being recorded. As time goes on however, we see these proportions decrease. Yet at the same time, we see the n (count) increase. This could indicate a baby boom as there are a lot more children with this name, despite being a lower proportion of them named that given name in the world. Looking at the time at which we see the "count" increase, it coincides with the baby boom era.  
+
+
+## Problem 4 (36 points)
+
+**a)** Why might there be a difference between the proportion of children who receive a name over time, and the number of children who receive the name? Use `babynames` and group-wise summaries to compute the total number of children born each year and then to plot that number vs. year in a line graph.
+```{r}
+babynames %>%
+  group_by(year) %>% #wanting to see it on a yearly increase
+  summarise(total = sum(n)) %>% #counting the total of all those names per year now
+  ggplot() + geom_line(aes(x = year, y = total)) + theme_minimal() + labs(title = "Children Born per Year", y = "Births", x = "Year")
+```
+
+**b)** How does this information affect your opinion on how to identify popularity based on Sums? Should we go by the second definition, basing popularity on Rank?
+
+We are seeing a large increase from 1945-1960, an era at which a lot of Americans were having children. I see this as going "together" with the other graphs. We are seeing an increase in birth rates throughout the years, so it is understandable that the proportion levels are decreasing. There's more people and therefore more unique names. I think it is important to understand the number of kids being born and then the proportion levels to describe the data. 
+
+**c)** Use `mutate()` to create a births column, the result of dividing `n` by `prop`. You can think of births as a sanity check; it uses each row to double check the number of boys or girls that were born each year. If all is well, the numbers will agree across rows (allowing for rounding errors).
+```{r}
+babynames %>%
+  mutate(births = n/prop)
+```
+
+**d)** Let's practice by ranking the entire dataset based on `prop`. Use `mutate()` and `min_rank()` to rank each row based on its prop value, with the highest values receiving the top ranks.
+```{r}
+babynames %>%
+  mutate(ranked = min_rank(desc(prop))) %>%
+  head(10)
+```
+
+
+**e)** Add `group_by()` to your code from above, to calculate ranking within year and sex combinations. Do you notice the numbers change?
+```{r}
+babynames %>%
+  group_by(sex, year)%>%
+  mutate(ranked = min_rank(desc(prop)))%>%
+  head(10)
+```
+Yes, the numbers do change as they are put into a more understandable way of what is the highest ranked. In this manner, they are ranked sequentially in whole numbers, starting with 1.
+We see here that the top 10 highest rankings are all women in the 1880's.
+ 
+**f)** `group_by()` provides the missing piece for calculating our second measure of popularity. Below: 
+
+- Group `babynames` by year and sex
+- Assign a rank to each name based on descending values of prop
+- Regroup the data by name and sex
+- Compute the _median_ ranking for each name and sex combination
+- Arrange the results so the names with the lowest sum appear at the top of the data set
+
+```{r}
+babynames %>% #data set
+  group_by(year, sex) %>% #told to group by this
+  mutate(ranked = min_rank(desc(prop)))%>% #assigning rank like we did earlier
+  group_by(name, sex)%>% #told to regroup it by this
+  summarise(median_rank = median(ranked)) %>%
+  arrange(median_rank) %>% #wanting it arranged nice :)
+  head(10)
+```
+
+Here we see Mary taking first place with the highest median rank score. Then we have a tie between James and John. Out of the top 10 names, only two are female. Unfortunately "Austin" doesn't come in the top 10 :/ 
