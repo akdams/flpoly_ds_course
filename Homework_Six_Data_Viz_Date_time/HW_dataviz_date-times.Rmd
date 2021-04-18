@@ -1,0 +1,255 @@
+---
+title: 'HW: data summaries, visualization and working with dates-times'
+author: "Austin Adams - `aadams0230@floridapoly.edu`"
+output:
+  html_document:
+    df_print: paged
+---
+
+For this assignment, load the `tidyverse` and `lubridate` packages.
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lubridate)
+```
+
+# Problem 1 
+
+Use the `CIACountries.csv` file
+
+```{r, message=FALSE, warning=FALSE}
+CIACountries <- read_csv("https://raw.githubusercontent.com/reisanar/datasets/master/CIACountries.csv")
+```
+
+Below is a sample of the data in `CIACountries`
+
+```{r}
+set.seed(13121)
+CIACountries %>% 
+  sample_n(size = 5)
+```
+
+This dataset comes from the (2014) [CIA Factbook](https://www.cia.gov/library/publications/the-world-factbook/) which has geographic, demographic, and economic data on a country-by-country basis. (In the description of the variables, the 4-digit number indicates the code used to specify that variable on the data and documentation web site)
+
+
+ Variable       |    Description
+----------------|--------------------------------------
+`country`       | Name of the country
+`pop`           | Number of people, 2119
+`area`          | Area (sq km), 2147
+`oil_prod`      | Crude oil - production (bbl/day), 2241
+`gdp`           | Gross Domestic Product per capita ($/person), 2001
+`educ`          | Education spending (% of GDP), 2206
+`roadways`      | Roadways per unit area (km/sq km), 2085
+`net_users`     | Fraction of Internet users (% of population), 2153
+
+
+
+(a) (10 points) Create a data summary of your choice, and **comment on your results**. 
+
+```{r}
+ CIACountries %>%
+  select(country,oil_prod, gdp)%>%
+  arrange(desc(oil_prod))%>%
+  head(10)
+```
+
+The top 10 oil producing countries are above. 
+Unsurprisingly Russia, the United States, China, Iran, Iraq, and the U.A.E. are the world's top producers of oil. 
+Most of these countries are where the United States has a strong presence due to the oil. 
+However, none of these countries, except Kuwait, crack the top 10 when it comes to GDP (this table is below).
+
+```{r}
+CIACountries %>%
+  select(country,oil_prod, gdp)%>%
+  arrange(desc(gdp))%>%
+  head(10)
+```
+
+
+```{r}
+  CIACountries %>%
+  select(country,oil_prod, gdp)%>%
+  arrange(desc(oil_prod))%>%
+  head(10)%>%
+  
+  ggplot()+
+  geom_point(aes(x = oil_prod, y = gdp, color = country))+ 
+  labs(title = "Production of Oil in relation to GDP per Country", y = "GDP", x = "Oil Production Rate")
+```
+
+There is no correlation between GDP and Oil Production. However, it is interesting to see the United States and Russia have a high GDP and Oil Production Rate. 
+
+
+(b) (15 points) Show how you would generate the visualization below: 
+```{r, fig.height= 3, fig.width= 5, echo = F}
+knitr::include_graphics("https://github.com/reisanar/figs/raw/master/prob_1.png")
+```
+
+```{r}
+ggplot(data = CIACountries) + geom_point(aes(x=educ, y = gdp, color = net_users, size = roadways)) + theme_minimal()
+```
+
+# Problem 2
+
+Consider the `flights` dataframe from the `nycflights13` package. 
+
+```{r}
+library(nycflights13)
+```
+
+
+(a) (10 points) Consider only the flights with destination `SFO` for which the `arr_delay` record is not missing. Name the resulting dataframe `SF`.
+
+```{r}
+SF <- nycflights13::flights %>%
+    filter(dest == "SFO", !is.na(arr_delay))#filtered it by SFO
+
+  SF #new data frame
+```
+
+(b) (15 points) Suppose we want to examine how the _arrival delay_ (`arr_delay`) depends on the hour (`hour`). Using a standard box-and-whiskers plot, one can show the distribution of arrival delays. Show how you would generate a visualization like the one below: (_Hint:_ use the `ylim` option in the `coord_cartesian()` function to limit the vertical axis from -30 to 120, or check the `ggplot2` function `ylim()`)
+
+
+```{r, fig.height= 3, fig.width= 5, echo = F}
+knitr::include_graphics("https://github.com/reisanar/figs/raw/master/prob_2.png")
+```
+
+```{r}
+ggplot(data = SF) + #data set
+  geom_boxplot(aes(group = hour, x= hour,  y = arr_delay), outlier.alpha = 0.1, size = 1.1) +
+  labs(y = "Arrival delay (minutes)", x = "Scheduled hour of departure") + coord_cartesian(ylim=c(-30,120), expand=FALSE)
+  
+```
+
+# Problem 3
+
+In this problem you will use data on Brexit (EU referendum) poll outcomes for 127 polls from January 2016 to the referendum date on June 23, 2016. Load the `brexit_polls` data frame:
+
+```{r, message=FALSE, warning=FALSE}
+brexit_polls <- read_csv("https://raw.githubusercontent.com/reisanar/datasets/master/brexit_polls.csv")
+```
+
+The variable description is included below for your reference:
+
+   Variable        |     Description
+-------------------|-------------------------------------------
+`startdate`        | Start date of poll.
+`enddate`          | End date of poll.
+`pollster`         | Pollster conducting the poll.
+`poll_type`        | Online or telephone poll.
+`samplesize`       | Sample size of poll.
+`remain`           | Proportion voting Remain.
+`leave`            | Proportion voting Leave.
+`undecided`        | Proportion of undecided voters.
+`spread`           | Spread calculated as remain - leave
+
+```{r}
+head(brexit_polls)
+```
+
+
+(a) (5 points) How many polls had a start date (`startdate`) in April (month number 4)?
+```{r}
+brexit_polls %>% #Dataset
+  filter(month(startdate) == 04) %>% #filtered the startdate by the month
+  count() #counted it
+```
+
+
+
+(b) (5 points) Check the documentation of the `round_date()` function. Use the `round_date()` function on the `enddate` column with the argument `unit="week"`. (_Hint_: use `mutate()`)
+```{r}
+brexit_polls %>% #data set
+  mutate(myround = round_date(enddate, unit = "week")) #wanted specs
+```
+Included rounded dates. 
+
+
+(c) (5 points) How many polls ended the week of 2016-06-12? 
+```{r}
+brexit_polls %>% #data set
+  mutate(myround = round_date(enddate, unit = "week"))%>%
+  filter(myround == "2016-06-12")%>% #wanted to end of that week
+  nrow() #counted
+```
+Thirteen. 
+
+(d) (5 points) Use the `weekdays()` function to determine the weekday on which each poll ended (`enddate`).
+
+```{r}
+brexit_polls %>% #data set
+  mutate(end_day = weekdays(enddate)) #day of when the week was
+```
+
+
+(e) (5 points) On which weekday did the greatest number of polls end?
+```{r}
+brexit_polls %>%  #data set
+  mutate(end_day = weekdays(enddate)) %>% #determining when it is
+  group_by(end_day) %>% #grouping by that
+  count(sort = T) #count it
+```
+Sunday was the greatest number of when the polls ended.
+
+
+# Problem 4
+
+Load the `movielens` data frame. This data frame contains a set of about 100,000 movie reviews. The `timestamp` column contains the review date as the number of seconds since 1970-01-01 (_epoch time_).
+
+```{r, message=FALSE, warning=FALSE}
+movielens <- read.csv("https://raw.githubusercontent.com/reisanar/datasets/master/movielens.csv")
+```
+
+Check the data frame:
+
+```{r}
+head(movielens)
+```
+
+(a) (5 points) Convert the `timestamp` column to dates using the `as_datetime()` function from the `lubridate` package. (_Hint_: use `mutate()`)
+```{r}
+updatedmovielens <- movielens %>% #data set
+  mutate(timestamp = as_datetime(timestamp)) #changing the time stamp to date time thingy
+
+updatedmovielens #recalling the new function
+```
+
+
+(b) (5 points) Which year had the most movie reviews?
+```{r}
+updatedmovielens %>% #data set
+  group_by(year(timestamp))%>% #grouped by the year of the date
+  count() %>% # counted
+  arrange(desc(n)) %>% #sorted from highest to lowest
+  head(1) #wanted the highest count of the year given
+```
+Year 2000 had a lot of movie reviews. 
+
+
+(c) (5 points) Which hour of the day had the most movie reviews?
+```{r}
+updatedmovielens %>% #data set
+  group_by(hour(timestamp))%>% #grouped by the hour of the date
+  count() %>% #counted it
+  arrange(desc(n)) %>% # arranged it from highest to lowest
+  head(1) #highest count
+```
+Lots of movie reviews coming in around 8 pm. 
+
+(d) (10 points) Create a data visualization of your choice using the `movielens` data frame.
+```{r}
+updatedmovielens %>% 
+  group_by(year) %>%
+  
+  ggplot() +
+  geom_bar(aes(x = rating), fill = "#000080") +
+  labs(title = "Number of Ratings", x = "Rating Value", y = "Count of the Rating")
+```
+
+I was curious to see what Ratings most of these movies were given. 
+From the visualization, we see that the raters had a tendency to give out a lot of 4's and 3's to the movies that they viewed. 
+Overall, there are very few low ratings (2 and below).
+
+
+
